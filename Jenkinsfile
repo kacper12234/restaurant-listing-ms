@@ -5,6 +5,7 @@ pipeline {
     DOCKERHUB_CREDENTIALS = credentials('DOCKER_HUB_CREDENTIAL')
     VERSION = "${env.BUILD_ID}"
     EC2_ADDRESS = "16.171.173.55"
+    SONAR_TOKEN = "squ_03198c5717b1682300104d9e58421b0c2c678430"
   }
 
   tools {
@@ -27,7 +28,7 @@ pipeline {
 
     stage('SonarQube Analysis') {
   steps {
-    sh 'mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -Dsonar.host.url=http://${EC2_ADDRESS}:9000/ -Dsonar.login=squ_32789bcdadb6e4337e432d6cbc100c2a1a14fde5'
+    sh 'mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -Dsonar.host.url=http://${EC2_ADDRESS}:9000/ -Dsonar.login=${SONAR_TOKEN}'
   }
 }
 
@@ -35,13 +36,12 @@ pipeline {
    stage('Check code coverage') {
             steps {
                 script {
-                    def token = "squ_03198c5717b1682300104d9e58421b0c2c678430"
                     def sonarQubeUrl = "http://${EC2_ADDRESS}:9000/api"
                     def componentKey = "com.codeddecode:restaurantlisting"
                     def coverageThreshold = 80.0
 
                     def response = sh (
-                        script: "curl -H 'Authorization: Bearer ${token}' '${sonarQubeUrl}/measures/component?component=${componentKey}&metricKeys=coverage'",
+                        script: "curl -H 'Authorization: Bearer ${SONAR_TOKEN}' '${sonarQubeUrl}/measures/component?component=${componentKey}&metricKeys=coverage'",
                         returnStdout: true
                     ).trim()
 
